@@ -4969,8 +4969,11 @@ def _sse_time(text, now=None):
         return when.strftime("%Y-%m-%d %H:%M")
     match = _SSE_AGO_TIME.match(text)
     if match:
-        delta = _dt.timedelta(**{_SSE_AGO_UNIT[match.group(2)]: int(match.group(1))})
-        return (now - delta).strftime("%Y-%m-%d %H:%M")
+        try:
+            delta = _dt.timedelta(**{_SSE_AGO_UNIT[match.group(2)]: int(match.group(1))})
+            return (now - delta).strftime("%Y-%m-%d %H:%M")
+        except (OverflowError, ValueError):  # N 过大算认不出
+            return None
     if text in ("刚刚", "刚才"):
         return now.strftime("%Y-%m-%d %H:%M")
     match = _SSE_CLOCK_TIME.match(text)    # 只有时分 = 今天

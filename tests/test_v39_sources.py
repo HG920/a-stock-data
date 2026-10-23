@@ -1668,6 +1668,12 @@ class SseInteractionTimeTests(unittest.TestCase):
             with self.subTest(text=text):
                 self.assertIsNone(self.sse_time(text))
 
+    def test_huge_ago_returns_none(self):
+        for text in ("999999999天前", "99999999999999999999天前", "999999999999小时前"):
+            with self.subTest(text=text):
+                self.assertIsNone(self.sse_time(text))
+        self.assertEqual(self.sse_time("2天前"), "2026-10-21 09:00")
+
     def test_invalid_feed_time_fails_loudly(self):
         real_time = self.ns["_sse_time"]
         with patch.dict(self.ns, {"_sse_time": lambda text: real_time(text, now=self.NOW)}):
