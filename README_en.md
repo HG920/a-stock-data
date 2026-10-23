@@ -537,7 +537,7 @@ cninfo IRM only covers Shenzhen-listed companies; Shanghai tickers return 0 rows
 
 ## Verification
 
-`python3 -m unittest discover -s tests -v` extracts the shipped code directly from SKILL.md and checks dates, fields, symbol routing, units, pagination and error propagation without network access (183 offline tests as of V3.10.3).
+`python3 -m unittest discover -s tests -v` extracts the shipped code directly from SKILL.md and checks dates, fields, symbol routing, units, pagination and error propagation without network access (187 offline tests as of V3.10.3, plus 4 live tests skipped by default).
 
 Live tests are opt-in; the date must be a trading day the sources have already published:
 
