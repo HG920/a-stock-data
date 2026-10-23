@@ -4949,8 +4949,11 @@ def _sse_time(text, now=None):
     match = _SSE_DAY_WORD_TIME.match(text)
     if match:
         when = now - _dt.timedelta(days=_SSE_DAY_WORD[match.group(1)])
-        return when.replace(hour=int(match.group(2)), minute=int(match.group(3)),
-                            second=0, microsecond=0).strftime("%Y-%m-%d %H:%M")
+        try:
+            return when.replace(hour=int(match.group(2)), minute=int(match.group(3)),
+                                second=0, microsecond=0).strftime("%Y-%m-%d %H:%M")
+        except ValueError:      # 非法时分算认不出
+            return None
     match = _SSE_MONTH_DAY_TIME.match(text)
     if match:
         month, day, hour, minute = (int(group) for group in match.groups())
@@ -4959,7 +4962,10 @@ def _sse_time(text, now=None):
         except ValueError:
             return None
         if when - now > _dt.timedelta(days=1):   # 跨年：1 月里看到「12-31」是去年的
-            when = when.replace(year=now.year - 1)
+            try:
+                when = when.replace(year=now.year - 1)
+            except ValueError:  # 去年可能没有 2 月 29 日
+                return None
         return when.strftime("%Y-%m-%d %H:%M")
     match = _SSE_AGO_TIME.match(text)
     if match:
@@ -4969,8 +4975,11 @@ def _sse_time(text, now=None):
         return now.strftime("%Y-%m-%d %H:%M")
     match = _SSE_CLOCK_TIME.match(text)    # 只有时分 = 今天
     if match:
-        return now.replace(hour=int(match.group(1)), minute=int(match.group(2)),
-                           second=0, microsecond=0).strftime("%Y-%m-%d %H:%M")
+        try:
+            return now.replace(hour=int(match.group(1)), minute=int(match.group(2)),
+                               second=0, microsecond=0).strftime("%Y-%m-%d %H:%M")
+        except ValueError:      # 非法时分算认不出
+            return None
     return None
 
 

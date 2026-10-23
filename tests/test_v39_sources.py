@@ -1663,6 +1663,27 @@ class SseInteractionTimeTests(unittest.TestCase):
         self.assertEqual(rows[0]["question_time"], "2026-10-21 17:47")
         self.assertEqual(rows[0]["answer_time"], "2026-10-22 18:22")
 
+    def test_invalid_time_returns_none(self):
+        for text in ("昨天 25:00", "09:99"):
+            with self.subTest(text=text):
+                self.assertIsNone(self.sse_time(text))
+
+    def test_invalid_feed_time_fails_loudly(self):
+        real_time = self.ns["_sse_time"]
+        with patch.dict(self.ns, {"_sse_time": lambda text: real_time(text, now=self.NOW)}):
+            for invalid in ("昨天 25:00", "09:99"):
+                for original, field in (("昨天 18:22", "回复"),
+                                        ("2026年10月21日 17:47", "提问")):
+                    with self.subTest(text=invalid, field=field):
+                        text = self.FEED.replace(original, invalid)
+                        with self.assertRaisesRegex(RuntimeError, field + "时间认不出"):
+                            self.ns["_sse_parse_feed"](text)
+
+    def test_month_day_year_rollover(self):
+        self.assertEqual(self.ns["_sse_time"]("12-31 18:00", now=datetime(2026, 1, 5, 9, 0)),
+                         "2025-12-31 18:00")
+        self.assertIsNone(self.ns["_sse_time"]("02-29 10:00", now=datetime(2024, 1, 5, 9, 0)))
+
     def test_unknown_time_still_fails_loudly(self):
         """认不出就必须报错，不能把「格式变了」悄悄变成一列 None。"""
         text = self.FEED.replace("2026年10月21日 17:47", "时间待定")
